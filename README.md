@@ -93,13 +93,38 @@ npm run format
 
 ```
 src/
-├── assets/          # 静态资源
-├── components/      # 可复用组件
-├── router/          # 路由配置
-├── stores/          # Pinia 状态管理
-├── views/           # 页面组件
-├── App.vue          # 根组件
-└── main.ts          # 应用入口
+├── assets/                   # 静态资源文件
+│   ├── base.css              # 基础样式重置和变量定义
+│   ├── logo.svg              # 项目Logo图标
+│   └── main.css              # 全局主样式文件
+├── components/               # 全局可复用组件（通用组件库）
+├── layouts/                  # 布局组件目录
+│   ├── MainLayout.vue        # 主布局容器组件
+│   └── components/           # 布局相关子组件
+│       ├── AppHeader.vue     # 应用头部导航组件
+│       ├── AppSidebar.vue    # 侧边栏导航组件
+│       ├── AppFooter.vue     # 应用底部组件
+│       └── AppBreadcrumb.vue # 面包屑导航组件
+├── router/                   # Vue Router 路由配置
+│   └── index.ts              # 路由定义和配置文件
+├── stores/                   # Pinia 状态管理
+│   └── counter.ts            # 示例状态管理模块
+├── views/                    # 页面级组件
+│   ├── HomeView.vue          # 首页 - 平台概览和统计信息
+│   ├── AboutView.vue         # 关于页面
+│   ├── LoginView.vue         # 用户登录页面
+│   ├── RegisterView.vue      # 用户注册页面
+│   ├── ProfileView.vue       # 用户个人资料页面
+│   ├── ProblemsView.vue      # 题目列表页面
+│   ├── ProblemDetailView.vue # 题目详情和代码提交页面
+│   ├── ContestsView.vue      # 比赛列表页面
+│   ├── ContestDetailView.vue # 比赛详情页面
+│   ├── SubmissionsView.vue   # 提交记录页面
+│   ├── RankingView.vue       # 排行榜页面
+│   └── DiscussView.vue       # 讨论区页面
+├── App.vue                   # 根组件 - 应用程序入口组件
+├── main.ts                   # 应用程序入口文件
+└── env.d.ts                  # TypeScript 环境类型声明文件
 ```
 
 ## 配置说明
