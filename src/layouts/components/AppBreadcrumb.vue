@@ -2,15 +2,15 @@
   <div class="app-breadcrumb" v-if="breadcrumbs.length > 0">
     <nav class="breadcrumb-nav">
       <ol class="breadcrumb-list">
-        <li 
-          v-for="(item, index) in breadcrumbs" 
-          :key="index" 
+        <li
+          v-for="(item, index) in breadcrumbs"
+          :key="index"
           class="breadcrumb-item"
           :class="{ 'is-active': index === breadcrumbs.length - 1 }"
         >
-          <RouterLink 
-            v-if="item.path && index !== breadcrumbs.length - 1" 
-            :to="item.path" 
+          <RouterLink
+            v-if="item.path && index !== breadcrumbs.length - 1"
+            :to="item.path"
             class="breadcrumb-link"
           >
             <i v-if="item.icon" :class="item.icon" class="breadcrumb-icon"></i>
@@ -42,77 +42,77 @@ const route = useRoute()
 // 路由到面包屑的映射配置
 const routeBreadcrumbMap: Record<string, BreadcrumbItem[]> = {
   '/': [
-    { title: '首页', path: '/', icon: '🏠' }
+    { title: '首页', path: '/' }
   ],
   '/problems': [
     { title: '首页', path: '/' },
-    { title: '题库', path: '/problems', icon: '📚' }
+    { title: '题库', path: '/problems' }
   ],
   '/problems/create': [
     { title: '首页', path: '/' },
     { title: '题库', path: '/problems' },
-    { title: '创建题目', icon: '➕' }
+    { title: '创建题目' }
   ],
   '/contests': [
     { title: '首页', path: '/' },
-    { title: '比赛', path: '/contests', icon: '🏆' }
+    { title: '比赛', path: '/contests' }
   ],
   '/contests/create': [
     { title: '首页', path: '/' },
     { title: '比赛', path: '/contests' },
-    { title: '创建比赛', icon: '➕' }
+    { title: '创建比赛' }
   ],
   '/submissions': [
     { title: '首页', path: '/' },
-    { title: '提交记录', path: '/submissions', icon: '📝' }
+    { title: '提交记录', path: '/submissions' }
   ],
   '/ranking': [
     { title: '首页', path: '/' },
-    { title: '排行榜', path: '/ranking', icon: '🏅' }
+    { title: '排行榜', path: '/ranking' }
   ],
   '/discuss': [
     { title: '首页', path: '/' },
-    { title: '讨论区', path: '/discuss', icon: '💬' }
+    { title: '讨论区', path: '/discuss' }
   ],
   '/profile': [
     { title: '首页', path: '/' },
-    { title: '个人中心', path: '/profile', icon: '👤' }
+    { title: '个人中心', path: '/profile' }
   ],
   '/settings': [
     { title: '首页', path: '/' },
     { title: '个人中心', path: '/profile' },
-    { title: '设置', icon: '⚙️' }
+    { title: '设置' }
   ],
   '/admin': [
     { title: '首页', path: '/' },
-    { title: '管理后台', path: '/admin', icon: '🔧' }
+    { title: '管理后台', path: '/admin' }
   ],
   '/about': [
     { title: '首页', path: '/' },
-    { title: '关于我们', icon: 'ℹ️' }
+    { title: '关于我们' }
   ]
 }
 
 // 动态生成面包屑
 const breadcrumbs = computed(() => {
   const currentPath = route.path
-  
+
   // 首先检查精确匹配
   if (routeBreadcrumbMap[currentPath]) {
     return routeBreadcrumbMap[currentPath]
   }
-  
+
   // 处理动态路由，如 /problems/123
   const pathSegments = currentPath.split('/').filter(Boolean)
   const breadcrumbItems: BreadcrumbItem[] = [
     { title: '首页', path: '/' }
   ]
-  
+
   let currentSegmentPath = ''
-  
+
   for (let i = 0; i < pathSegments.length; i++) {
     currentSegmentPath += '/' + pathSegments[i]
-    
+
     // 检查是否有预定义的面包屑
     if (routeBreadcrumbMap[currentSegmentPath]) {
       const predefinedBreadcrumbs = routeBreadcrumbMap[currentSegmentPath]
@@ -123,37 +123,30 @@ const breadcrumbs = computed(() => {
       // 动态生成面包屑项
       const segment = pathSegments[i]
       let title = segment
-      let icon = ''
-      
-      // 根据路径段生成标题和图标
+      //let icon = ''
+
+      // 根据路径段生成标题
       switch (segment) {
         case 'problems':
           title = '题库'
-          icon = '📚'
           break
         case 'contests':
           title = '比赛'
-          icon = '🏆'
           break
         case 'submissions':
           title = '提交记录'
-          icon = '📝'
           break
         case 'ranking':
           title = '排行榜'
-          icon = '🏅'
           break
         case 'discuss':
           title = '讨论区'
-          icon = '💬'
           break
         case 'profile':
           title = '个人中心'
-          icon = '👤'
           break
         case 'admin':
           title = '管理后台'
-          icon = '🔧'
           break
         default:
           // 如果是数字，可能是ID
@@ -163,15 +156,14 @@ const breadcrumbs = computed(() => {
             title = segment.charAt(0).toUpperCase() + segment.slice(1)
           }
       }
-      
+
       breadcrumbItems.push({
         title,
-        path: i === pathSegments.length - 1 ? undefined : currentSegmentPath,
-        icon
+        path: i === pathSegments.length - 1 ? undefined : currentSegmentPath
       })
     }
   }
-  
+
   return breadcrumbItems
 })
 </script>
@@ -244,16 +236,16 @@ const breadcrumbs = computed(() => {
     margin-bottom: 12px;
     padding: 8px 0;
   }
-  
+
   .breadcrumb-nav {
     font-size: 13px;
   }
-  
+
   .breadcrumb-link,
   .breadcrumb-text {
     padding: 2px 4px;
   }
-  
+
   .breadcrumb-separator {
     margin: 0 4px;
   }

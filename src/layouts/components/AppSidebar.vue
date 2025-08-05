@@ -12,15 +12,12 @@
       <div class="nav-section">
         <div class="section-title" v-if="!isCollapsed">题目</div>
         <RouterLink to="/problems" class="nav-link" title="题库">
-          <i class="icon">📚</i>
           <span v-if="!isCollapsed" class="nav-text">题库</span>
         </RouterLink>
         <RouterLink to="/problems/random" class="nav-link" title="随机题目">
-          <i class="icon">🎲</i>
           <span v-if="!isCollapsed" class="nav-text">随机题目</span>
         </RouterLink>
         <RouterLink to="/problems/favorites" class="nav-link" title="收藏题目">
-          <i class="icon">⭐</i>
           <span v-if="!isCollapsed" class="nav-text">收藏题目</span>
         </RouterLink>
       </div>
@@ -28,11 +25,9 @@
       <div class="nav-section">
         <div class="section-title" v-if="!isCollapsed">比赛</div>
         <RouterLink to="/contests" class="nav-link" title="比赛列表">
-          <i class="icon">🏆</i>
           <span v-if="!isCollapsed" class="nav-text">比赛列表</span>
         </RouterLink>
         <RouterLink to="/contests/my" class="nav-link" title="我的比赛">
-          <i class="icon">👤</i>
           <span v-if="!isCollapsed" class="nav-text">我的比赛</span>
         </RouterLink>
       </div>
@@ -40,11 +35,9 @@
       <div class="nav-section">
         <div class="section-title" v-if="!isCollapsed">记录</div>
         <RouterLink to="/submissions" class="nav-link" title="提交记录">
-          <i class="icon">📝</i>
           <span v-if="!isCollapsed" class="nav-text">提交记录</span>
         </RouterLink>
         <RouterLink to="/submissions/my" class="nav-link" title="我的提交">
-          <i class="icon">📋</i>
           <span v-if="!isCollapsed" class="nav-text">我的提交</span>
         </RouterLink>
       </div>
@@ -52,11 +45,9 @@
       <div class="nav-section">
         <div class="section-title" v-if="!isCollapsed">社区</div>
         <RouterLink to="/ranking" class="nav-link" title="排行榜">
-          <i class="icon">🏅</i>
           <span v-if="!isCollapsed" class="nav-text">排行榜</span>
         </RouterLink>
         <RouterLink to="/discuss" class="nav-link" title="讨论区">
-          <i class="icon">💬</i>
           <span v-if="!isCollapsed" class="nav-text">讨论区</span>
         </RouterLink>
       </div>
@@ -159,13 +150,6 @@ const toggleCollapse = () => {
   border-right: 3px solid #1890ff;
 }
 
-.icon {
-  font-size: 18px;
-  margin-right: 12px;
-  min-width: 18px;
-  text-align: center;
-}
-
 .nav-text {
   font-weight: 500;
   white-space: nowrap;
@@ -174,10 +158,6 @@ const toggleCollapse = () => {
 .sidebar-collapsed .nav-link {
   justify-content: center;
   padding: 12px;
-}
-
-.sidebar-collapsed .icon {
-  margin-right: 0;
 }
 
 @media (max-width: 768px) {
