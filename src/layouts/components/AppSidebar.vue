@@ -1,69 +1,80 @@
 <template>
-  <aside class="app-sidebar" :class="{ 'sidebar-collapsed': isCollapsed }">
-    <!-- Sidebar Toggle -->
-    <div class="sidebar-header">
-      <button class="collapse-btn" @click="toggleCollapse">
-        <span class="collapse-icon">{{ isCollapsed ? '→' : '←' }}</span>
-      </button>
+  <aside class="app-sidebar" :class="{ 'sidebar-collapsed': isCollapsed, 'sidebar-mobile-open': isMobileOpen }">
+    <div class="sidebar-content">
+      <!-- 侧边栏头部 -->
+      <div class="sidebar-header">
+        <h3 v-if="!isCollapsed" class="sidebar-title">导航菜单</h3>
+        <button 
+          v-if="!isMobile" 
+          @click="$emit('toggle-collapse')" 
+          class="collapse-btn"
+          :title="isCollapsed ? '展开侧边栏' : '收起侧边栏'"
+        >
+          {{ isCollapsed ? '→' : '←' }}
+        </button>
+      </div>
+
+      <!-- 导航菜单 -->
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <h4 v-if="!isCollapsed" class="section-title">学习</h4>
+          <RouterLink to="/problems" class="nav-item">
+            <span class="nav-text">题库</span>
+          </RouterLink>
+          <RouterLink to="/contests" class="nav-item">
+            <span class="nav-text">比赛</span>
+          </RouterLink>
+          <RouterLink to="/ranking" class="nav-item">
+            <span class="nav-text">排行榜</span>
+          </RouterLink>
+          <RouterLink to="/achievements" class="nav-item">
+            <span class="nav-text">成就</span>
+          </RouterLink>
+        </div>
+
+        <div class="nav-section">
+          <h4 v-if="!isCollapsed" class="section-title">个人</h4>
+          <RouterLink to="/profile" class="nav-item">
+            <span class="nav-text">个人中心</span>
+          </RouterLink>
+          <RouterLink to="/submissions" class="nav-item">
+            <span class="nav-text">提交记录</span>
+          </RouterLink>
+          <RouterLink to="/favorites" class="nav-item">
+            <span class="nav-text">收藏夹</span>
+          </RouterLink>
+          <RouterLink to="/notes" class="nav-item">
+            <span class="nav-text">笔记</span>
+          </RouterLink>
+        </div>
+
+        <div class="nav-section">
+          <h4 v-if="!isCollapsed" class="section-title">社区</h4>
+          <RouterLink to="/discuss" class="nav-item">
+            <span class="nav-text">讨论区</span>
+          </RouterLink>
+        </div>
+      </nav>
     </div>
-
-    <!-- Sidebar Menu -->
-    <nav class="sidebar-nav">
-      <div class="nav-section">
-        <div class="section-title" v-if="!isCollapsed">题目</div>
-        <RouterLink to="/problems" class="nav-link" title="题库">
-          <span v-if="!isCollapsed" class="nav-text">题库</span>
-        </RouterLink>
-        <RouterLink to="/problems/random" class="nav-link" title="随机题目">
-          <span v-if="!isCollapsed" class="nav-text">随机题目</span>
-        </RouterLink>
-        <RouterLink to="/problems/favorites" class="nav-link" title="收藏题目">
-          <span v-if="!isCollapsed" class="nav-text">收藏题目</span>
-        </RouterLink>
-      </div>
-
-      <div class="nav-section">
-        <div class="section-title" v-if="!isCollapsed">比赛</div>
-        <RouterLink to="/contests" class="nav-link" title="比赛列表">
-          <span v-if="!isCollapsed" class="nav-text">比赛列表</span>
-        </RouterLink>
-        <RouterLink to="/contests/my" class="nav-link" title="我的比赛">
-          <span v-if="!isCollapsed" class="nav-text">我的比赛</span>
-        </RouterLink>
-      </div>
-
-      <div class="nav-section">
-        <div class="section-title" v-if="!isCollapsed">记录</div>
-        <RouterLink to="/submissions" class="nav-link" title="提交记录">
-          <span v-if="!isCollapsed" class="nav-text">提交记录</span>
-        </RouterLink>
-        <RouterLink to="/submissions/my" class="nav-link" title="我的提交">
-          <span v-if="!isCollapsed" class="nav-text">我的提交</span>
-        </RouterLink>
-      </div>
-
-      <div class="nav-section">
-        <div class="section-title" v-if="!isCollapsed">社区</div>
-        <RouterLink to="/ranking" class="nav-link" title="排行榜">
-          <span v-if="!isCollapsed" class="nav-text">排行榜</span>
-        </RouterLink>
-        <RouterLink to="/discuss" class="nav-link" title="讨论区">
-          <span v-if="!isCollapsed" class="nav-text">讨论区</span>
-        </RouterLink>
-      </div>
-    </nav>
   </aside>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-// 侧边栏折叠状态
-const isCollapsed = ref(false)
-
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value
+interface Props {
+  isCollapsed?: boolean
+  isMobileOpen?: boolean
+  isMobile?: boolean
 }
+
+withDefaults(defineProps<Props>(), {
+  isCollapsed: false,
+  isMobileOpen: false,
+  isMobile: false
+})
+
+defineEmits<{
+  'toggle-collapse': []
+}>()
 </script>
 
 <style scoped>
@@ -71,49 +82,62 @@ const toggleCollapse = () => {
   width: 240px;
   background: #fff;
   border-right: 1px solid #e8e8e8;
-  height: calc(100vh - 64px);
+  height: 100vh;
   position: sticky;
   top: 64px;
-  transition: width 0.3s ease;
-  overflow: hidden;
+  transition: all 0.3s ease;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
 }
 
-.sidebar-collapsed {
-  width: 64px;
+.sidebar-content {
+  padding: 20px 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-header {
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 20px;
+}
+
+.sidebar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .collapse-btn {
   background: none;
   border: 1px solid #e8e8e8;
-  border-radius: 4px;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  color: #666;
+  font-size: 14px;
   transition: all 0.3s ease;
 }
 
 .collapse-btn:hover {
   background-color: #f5f5f5;
   border-color: #d9d9d9;
-}
-
-.collapse-icon {
-  font-size: 14px;
-  color: #666;
+  color: #1890ff;
 }
 
 .sidebar-nav {
-  padding: 16px 0;
+  flex: 1;
+  padding: 0 12px;
 }
 
 .nav-section {
@@ -121,59 +145,186 @@ const toggleCollapse = () => {
 }
 
 .section-title {
-  padding: 0 16px 8px;
   font-size: 12px;
   font-weight: 600;
   color: #999;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin: 0 0 12px 8px;
+  padding: 0;
 }
 
-.nav-link {
+.nav-item {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  color: #666;
+  padding: 10px 12px;
+  margin: 2px 0;
+  border-radius: 8px;
   text-decoration: none;
+  color: #666;
+  font-weight: 500;
   transition: all 0.3s ease;
   position: relative;
+  overflow: hidden;
 }
 
-.nav-link:hover {
-  background-color: #f5f5f5;
+.nav-item:hover {
+  background-color: #f0f8ff;
   color: #1890ff;
+  transform: translateX(2px);
 }
 
-.nav-link.router-link-active {
+.nav-item.router-link-active {
   background-color: #e6f7ff;
   color: #1890ff;
-  border-right: 3px solid #1890ff;
+  font-weight: 600;
+}
+
+.nav-item.router-link-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: #1890ff;
 }
 
 .nav-text {
-  font-weight: 500;
+  font-size: 14px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.sidebar-collapsed .nav-link {
+/* 收起状态 */
+.sidebar-collapsed {
+  width: 64px;
+}
+
+.sidebar-collapsed .sidebar-header {
+  padding: 0 12px 16px;
   justify-content: center;
-  padding: 12px;
 }
 
+.sidebar-collapsed .sidebar-title {
+  display: none;
+}
+
+.sidebar-collapsed .collapse-btn {
+  margin: 0;
+}
+
+.sidebar-collapsed .nav-section {
+  margin-bottom: 16px;
+}
+
+.sidebar-collapsed .section-title {
+  display: none;
+}
+
+.sidebar-collapsed .nav-item {
+  padding: 12px;
+  justify-content: center;
+  margin: 4px 0;
+}
+
+.sidebar-collapsed .nav-text {
+  display: none;
+}
+
+.sidebar-collapsed .nav-item:hover {
+  transform: none;
+}
+
+/* 移动端样式 */
 @media (max-width: 768px) {
   .app-sidebar {
     position: fixed;
+    top: 64px;
     left: -240px;
-    z-index: 999;
+    z-index: 998;
+    height: calc(100vh - 64px);
     transition: left 0.3s ease;
   }
 
-  .app-sidebar.sidebar-open {
+  .sidebar-mobile-open {
     left: 0;
   }
 
   .sidebar-collapsed {
     left: -64px;
   }
+
+  .sidebar-collapsed.sidebar-mobile-open {
+    left: 0;
+  }
+}
+
+/* 平板设备优化 */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .app-sidebar {
+    width: 200px;
+  }
+
+  .sidebar-collapsed {
+    width: 56px;
+  }
+
+  .nav-item {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .sidebar-collapsed .nav-item {
+    padding: 10px;
+  }
+}
+
+/* 小屏设备 */
+@media (max-width: 480px) {
+  .app-sidebar {
+    width: 100vw;
+    left: -100vw;
+  }
+
+  .sidebar-mobile-open {
+    left: 0;
+  }
+
+  .sidebar-content {
+    padding: 16px 0;
+  }
+
+  .sidebar-header {
+    padding: 0 16px 12px;
+  }
+
+  .sidebar-nav {
+    padding: 0 8px;
+  }
+
+  .nav-item {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+}
+
+/* 滚动条样式 */
+.app-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.app-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: #d9d9d9;
+  border-radius: 2px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #bfbfbf;
 }
 </style>
