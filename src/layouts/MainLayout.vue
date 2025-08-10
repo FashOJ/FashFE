@@ -44,8 +44,6 @@ import AppBreadcrumb from './components/AppBreadcrumb.vue'
 .page-content {
   flex: 1;
   padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
 }

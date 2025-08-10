@@ -184,6 +184,7 @@ const goToProblem = (id: number) => {
 .problems-view {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
 .page-header {
@@ -242,6 +243,7 @@ const goToProblem = (id: number) => {
 .filter-label {
   font-weight: 500;
   color: #666;
+  white-space: nowrap;
 }
 
 .tag-btn {
@@ -251,6 +253,7 @@ const goToProblem = (id: number) => {
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-size: 14px;
 }
 
 .tag-btn:hover,
@@ -310,16 +313,21 @@ const goToProblem = (id: number) => {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .problem-id {
   color: #999;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .problem-title {
   color: #333;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .col-difficulty {
@@ -360,6 +368,7 @@ const goToProblem = (id: number) => {
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .tag {
@@ -368,11 +377,13 @@ const goToProblem = (id: number) => {
   border-radius: 3px;
   font-size: 12px;
   color: #666;
+  white-space: nowrap;
 }
 
 .tag-more {
   color: #999;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .pagination {
@@ -407,16 +418,276 @@ const goToProblem = (id: number) => {
   color: #666;
 }
 
-@media (max-width: 768px) {
+/* Enhanced Responsive Design */
+/* Large Desktop */
+@media (min-width: 1400px) {
+  .problems-view {
+    max-width: 1400px;
+    padding: 0 40px;
+  }
+  
+  .page-title {
+    font-size: 32px;
+  }
+  
+  .page-description {
+    font-size: 18px;
+  }
+  
+  .filters-section {
+    padding: 24px;
+  }
+  
   .list-header,
   .problem-item {
-    grid-template-columns: 60px 1fr 80px;
+    padding: 20px 24px;
+    gap: 20px;
+  }
+}
+
+/* Desktop */
+@media (max-width: 1200px) {
+  .problems-view {
+    padding: 0 24px;
+  }
+  
+  .list-header,
+  .problem-item {
+    grid-template-columns: 70px 1fr 90px 90px 180px;
+    gap: 12px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .problems-view {
+    padding: 0 20px;
+  }
+  
+  .page-title {
+    font-size: 24px;
+  }
+  
+  .page-description {
+    font-size: 14px;
+  }
+  
+  .filters-section {
+    padding: 16px;
+  }
+  
+  .search-input {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .search-btn {
+    padding: 8px 12px;
+  }
+  
+  .tag-btn {
+    padding: 5px 10px;
+    font-size: 13px;
+  }
+  
+  .list-header,
+  .problem-item {
+    grid-template-columns: 60px 1fr 80px 80px 150px;
+    gap: 10px;
+    padding: 14px 16px;
+  }
+  
+  .problem-title {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Large */
+@media (max-width: 768px) {
+  .problems-view {
+    padding: 0 16px;
+  }
+  
+  .page-header {
+    margin-bottom: 24px;
+  }
+  
+  .page-title {
+    font-size: 22px;
+  }
+  
+  .filters-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .search-box {
+    margin-bottom: 12px;
+  }
+  
+  .filter-tags {
+    gap: 6px;
+  }
+  
+  .filter-label {
+    font-size: 14px;
+  }
+  
+  .tag-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .list-header,
+  .problem-item {
+    grid-template-columns: 50px 1fr 70px;
     gap: 8px;
+    padding: 12px;
   }
   
   .col-acceptance,
   .col-tags {
     display: none;
+  }
+  
+  .problem-id {
+    font-size: 12px;
+  }
+  
+  .problem-title {
+    font-size: 13px;
+  }
+  
+  .difficulty-tag {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+  
+  .pagination {
+    margin-top: 20px;
+    gap: 12px;
+  }
+  
+  .page-btn {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  
+  .page-info {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Small */
+@media (max-width: 480px) {
+  .problems-view {
+    padding: 0 12px;
+  }
+  
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .page-description {
+    font-size: 13px;
+  }
+  
+  .filters-section {
+    padding: 12px;
+  }
+  
+  .search-input {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .search-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  
+  .filter-tags {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .filter-label {
+    font-size: 13px;
+  }
+  
+  .tag-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+  
+  .list-header {
+    font-size: 12px;
+    padding: 10px 8px;
+  }
+  
+  .problem-item {
+    padding: 10px 8px;
+    grid-template-columns: 40px 1fr 60px;
+  }
+  
+  .status-icon {
+    font-size: 14px;
+  }
+  
+  .problem-id {
+    font-size: 11px;
+  }
+  
+  .problem-title {
+    font-size: 12px;
+  }
+  
+  .difficulty-tag {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+  
+  .pagination {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .page-btn {
+    width: 100%;
+    padding: 8px 16px;
+  }
+  
+  .page-info {
+    font-size: 12px;
+  }
+}
+
+/* Extra Small Mobile */
+@media (max-width: 360px) {
+  .problems-view {
+    padding: 0 8px;
+  }
+  
+  .page-title {
+    font-size: 18px;
+  }
+  
+  .filters-section {
+    padding: 10px;
+  }
+  
+  .list-header,
+  .problem-item {
+    padding: 8px 6px;
+  }
+  
+  .problem-item {
+    grid-template-columns: 35px 1fr 55px;
+  }
+  
+  .problem-title {
+    font-size: 11px;
   }
 }
 </style>

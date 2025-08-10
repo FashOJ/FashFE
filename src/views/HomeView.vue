@@ -138,6 +138,7 @@ const goToContests = () => {
 .home-view {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
 /* Hero Section */
@@ -229,6 +230,8 @@ const goToContests = () => {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
+  width: 100%;
+  max-width: 400px;
 }
 
 .code-animation::before {
@@ -440,29 +443,98 @@ const goToContests = () => {
   font-size: 14px;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .hero-section {
-    grid-template-columns: 1fr;
-    gap: 40px;
-    padding: 40px 0;
-    text-align: center;
+/* Enhanced Responsive Design */
+/* Large Desktop */
+@media (min-width: 1400px) {
+  .home-view {
+    max-width: 1400px;
+    padding: 0 40px;
   }
   
   .hero-title {
-    font-size: 36px;
+    font-size: 56px;
+  }
+  
+  .hero-subtitle {
+    font-size: 22px;
+  }
+  
+  .stats-grid {
+    gap: 32px;
+  }
+  
+  .content-sections {
+    gap: 48px;
+  }
+}
+
+/* Desktop */
+@media (max-width: 1200px) {
+  .home-view {
+    padding: 0 24px;
+  }
+  
+  .hero-section {
+    gap: 40px;
+    padding: 40px 0;
+  }
+  
+  .hero-title {
+    font-size: 42px;
+  }
+  
+  .stats-grid {
+    gap: 20px;
+  }
+  
+  .content-sections {
+    gap: 32px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .home-view {
+    padding: 0 20px;
+  }
+  
+  .hero-section {
+    gap: 32px;
+    padding: 32px 0;
+    margin-bottom: 60px;
+  }
+  
+  .hero-title {
+    font-size: 38px;
   }
   
   .hero-subtitle {
     font-size: 18px;
   }
   
+  .code-animation {
+    padding: 32px;
+    font-size: 14px;
+  }
+  
+  .stats-section {
+    margin-bottom: 60px;
+  }
+  
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  
+  .stat-card {
+    padding: 24px 20px;
+  }
+  
+  .stat-number {
+    font-size: 28px;
   }
   
   .content-sections {
-    grid-template-columns: 1fr;
     gap: 24px;
   }
   
@@ -471,18 +543,206 @@ const goToContests = () => {
   }
 }
 
-@media (max-width: 480px) {
+/* Mobile Large */
+@media (max-width: 768px) {
+  .home-view {
+    padding: 0 16px;
+  }
+  
+  .hero-section {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 24px 0;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  
+  .hero-title {
+    font-size: 32px;
+  }
+  
+  .hero-subtitle {
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  
   .hero-actions {
-    flex-direction: column;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    padding: 12px 24px;
+    font-size: 14px;
+  }
+  
+  .code-animation {
+    max-width: 320px;
+    padding: 24px;
+    font-size: 12px;
+  }
+  
+  .stats-section {
+    margin-bottom: 48px;
   }
   
   .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 20px 16px;
+  }
+  
+  .stat-number {
+    font-size: 24px;
+  }
+  
+  .stat-label {
+    font-size: 12px;
+  }
+  
+  .content-sections {
     grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .section {
+    padding: 20px;
+  }
+  
+  .section-title {
+    font-size: 18px;
+  }
+  
+  .problem-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .problem-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* Mobile Small */
+@media (max-width: 480px) {
+  .home-view {
+    padding: 0 12px;
+  }
+  
+  .hero-section {
+    padding: 20px 0;
+    margin-bottom: 32px;
+  }
+  
+  .hero-title {
+    font-size: 28px;
+  }
+  
+  .hero-subtitle {
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+    gap: 12px;
   }
   
   .btn {
     width: 100%;
     text-align: center;
+    padding: 14px 20px;
+  }
+  
+  .code-animation {
+    max-width: 280px;
+    padding: 20px;
+    font-size: 11px;
+  }
+  
+  .stats-section {
+    margin-bottom: 32px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .stat-card {
+    padding: 16px 12px;
+  }
+  
+  .stat-number {
+    font-size: 20px;
+  }
+  
+  .content-sections {
+    gap: 16px;
+  }
+  
+  .section {
+    padding: 16px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+  }
+  
+  .section-link {
+    font-size: 12px;
+  }
+  
+  .problem-card,
+  .contest-card {
+    padding: 12px;
+  }
+  
+  .contest-title {
+    font-size: 14px;
+  }
+  
+  .contest-time,
+  .contest-participants {
+    font-size: 12px;
+  }
+}
+
+/* Extra Small Mobile */
+@media (max-width: 360px) {
+  .home-view {
+    padding: 0 8px;
+  }
+  
+  .hero-title {
+    font-size: 24px;
+  }
+  
+  .code-animation {
+    max-width: 240px;
+    padding: 16px;
+    font-size: 10px;
+  }
+  
+  .stat-number {
+    font-size: 18px;
+  }
+  
+  .section {
+    padding: 12px;
   }
 }
 </style>
