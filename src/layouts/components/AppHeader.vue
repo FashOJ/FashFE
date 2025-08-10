@@ -97,8 +97,6 @@ const logout = () => {
 }
 
 .header-container {
-  max-width: 1400px;
-  margin: 0 auto;
   padding: 0 20px;
   display: flex;
   align-items: center;
@@ -330,12 +328,12 @@ const logout = () => {
   .header-container {
     padding: 0 16px;
   }
-  
+
   .nav-menu {
     gap: 2px;
     margin: 0 12px;
   }
-  
+
   .nav-item {
     padding: 6px 8px;
     font-size: 13px;
@@ -393,16 +391,16 @@ const logout = () => {
   .user-actions {
     order: -1;
   }
-  
+
   .auth-buttons {
     gap: 8px;
   }
-  
+
   .btn {
     padding: 8px 12px;
     font-size: 13px;
   }
-  
+
   .brand-text {
     display: none;
   }
@@ -413,21 +411,21 @@ const logout = () => {
   .header-container {
     padding: 0 8px;
   }
-  
+
   .logo {
     width: 28px;
     height: 28px;
   }
-  
+
   .user-avatar {
     width: 28px;
     height: 28px;
   }
-  
+
   .username {
     display: none;
   }
-  
+
   .nav-item {
     font-size: 14px;
   }
