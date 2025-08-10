@@ -102,7 +102,6 @@ src/
 │   ├── MainLayout.vue        # 主布局容器组件
 │   └── components/           # 布局相关子组件
 │       ├── AppHeader.vue     # 应用头部导航组件
-│       ├── AppSidebar.vue    # 侧边栏导航组件
 │       ├── AppFooter.vue     # 应用底部组件
 │       └── AppBreadcrumb.vue # 面包屑导航组件
 ├── router/                   # Vue Router 路由配置
