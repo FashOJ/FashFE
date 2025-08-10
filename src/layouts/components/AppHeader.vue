@@ -14,9 +14,10 @@
         <RouterLink to="/" class="nav-item">首页</RouterLink>
         <RouterLink to="/problems" class="nav-item">题库</RouterLink>
         <RouterLink to="/contests" class="nav-item">比赛</RouterLink>
-        <RouterLink to="/submissions" class="nav-item">提交记录</RouterLink>
         <RouterLink to="/ranking" class="nav-item">排行榜</RouterLink>
-        <RouterLink to="/discuss" class="nav-item">讨论</RouterLink>
+        <RouterLink to="/submissions" class="nav-item">提交记录</RouterLink>
+        <RouterLink to="/discuss" class="nav-item">讨论区</RouterLink>
+        <RouterLink to="/profile" class="nav-item">个人中心</RouterLink>
       </nav>
 
       <!-- User Actions -->
@@ -29,6 +30,9 @@
           </div>
           <div v-if="showUserMenu" class="user-dropdown">
             <RouterLink to="/profile" class="dropdown-item">个人中心</RouterLink>
+            <RouterLink to="/favorites" class="dropdown-item">收藏夹</RouterLink>
+            <RouterLink to="/notes" class="dropdown-item">笔记</RouterLink>
+            <RouterLink to="/achievements" class="dropdown-item">成就</RouterLink>
             <RouterLink to="/settings" class="dropdown-item">设置</RouterLink>
             <div class="dropdown-divider"></div>
             <a href="#" @click="logout" class="dropdown-item">退出登录</a>
@@ -135,19 +139,21 @@ const logout = () => {
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
   justify-content: center;
+  margin: 0 20px;
 }
 
 .nav-item {
   color: #666;
   text-decoration: none;
   font-weight: 500;
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
   transition: all 0.3s ease;
   white-space: nowrap;
+  font-size: 14px;
 }
 
 .nav-item:hover {
@@ -326,12 +332,13 @@ const logout = () => {
   }
   
   .nav-menu {
-    gap: 4px;
+    gap: 2px;
+    margin: 0 12px;
   }
   
   .nav-item {
-    padding: 8px 12px;
-    font-size: 14px;
+    padding: 6px 8px;
+    font-size: 13px;
   }
 }
 
@@ -358,6 +365,7 @@ const logout = () => {
     transition: all 0.3s ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     z-index: 999;
+    margin: 0;
   }
 
   .nav-menu.nav-open {
@@ -371,6 +379,7 @@ const logout = () => {
     border-bottom: 1px solid #f0f0f0;
     text-align: center;
     width: 100%;
+    font-size: 15px;
   }
 
   .nav-item:last-child {
@@ -417,6 +426,10 @@ const logout = () => {
   
   .username {
     display: none;
+  }
+  
+  .nav-item {
+    font-size: 14px;
   }
 }
 </style>
