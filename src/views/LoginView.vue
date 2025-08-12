@@ -65,11 +65,9 @@
           </div>
           <div class="social-buttons">
             <button class="social-btn github-btn">
-              <span class="social-icon">🐙</span>
               GitHub
             </button>
             <button class="social-btn qq-btn">
-              <span class="social-icon">🐧</span>
               QQ
             </button>
           </div>

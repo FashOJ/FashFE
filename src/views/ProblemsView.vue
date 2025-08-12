@@ -33,7 +33,6 @@
     <!-- 题目列表 -->
     <div class="problems-list">
       <div class="list-header">
-        <div class="col-status">状态</div>
         <div class="col-title">题目</div>
         <div class="col-difficulty">难度</div>
         <div class="col-acceptance">通过率</div>
@@ -46,9 +45,7 @@
         class="problem-item"
         @click="goToProblem(problem.id)"
       >
-        <div class="col-status">
-          <span :class="['status-icon', problem.status]">{{ getStatusIcon(problem.status) }}</span>
-        </div>
+
         <div class="col-title">
           <span class="problem-id">#{{ problem.id }}</span>
           <span class="problem-title">{{ problem.title }}</span>
@@ -89,7 +86,7 @@ interface Problem {
   id: number
   title: string
   difficulty: 'easy' | 'medium' | 'hard'
-  status: 'solved' | 'attempted' | 'unsolved'
+
   acceptanceRate: number
   tags: string[]
 }
@@ -116,7 +113,7 @@ const problems = ref<Problem[]>([
     id: 1,
     title: '两数之和',
     difficulty: 'easy',
-    status: 'solved',
+
     acceptanceRate: 85.2,
     tags: ['数组', '哈希表']
   },
@@ -124,7 +121,7 @@ const problems = ref<Problem[]>([
     id: 2,
     title: '链表反转',
     difficulty: 'medium',
-    status: 'attempted',
+
     acceptanceRate: 67.8,
     tags: ['链表', '递归']
   },
@@ -132,7 +129,7 @@ const problems = ref<Problem[]>([
     id: 3,
     title: '最长公共子序列',
     difficulty: 'hard',
-    status: 'unsolved',
+
     acceptanceRate: 45.3,
     tags: ['动态规划', '字符串']
   },
@@ -165,14 +162,7 @@ const totalPages = computed(() => {
   return Math.ceil(filteredProblems.value.length / pageSize)
 })
 
-// 获取状态图标
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'solved': return '✅'
-    case 'attempted': return '❌'
-    default: return '⭕'
-  }
-}
+
 
 // 跳转到题目详情
 const goToProblem = (id: number) => {
@@ -272,7 +262,7 @@ const goToProblem = (id: number) => {
 
 .list-header {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 100px 200px;
+  grid-template-columns: 1fr 100px 100px 200px;
   gap: 16px;
   padding: 16px 20px;
   background: #fafafa;
@@ -283,7 +273,7 @@ const goToProblem = (id: number) => {
 
 .problem-item {
   display: grid;
-  grid-template-columns: 80px 1fr 100px 100px 200px;
+  grid-template-columns: 1fr 100px 100px 200px;
   gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #f0f0f0;
@@ -299,15 +289,7 @@ const goToProblem = (id: number) => {
   border-bottom: none;
 }
 
-.col-status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-.status-icon {
-  font-size: 18px;
-}
 
 .col-title {
   display: flex;
@@ -453,7 +435,7 @@ const goToProblem = (id: number) => {
   
   .list-header,
   .problem-item {
-    grid-template-columns: 70px 1fr 90px 90px 180px;
+    grid-template-columns: 1fr 90px 90px 180px;
     gap: 12px;
   }
 }
@@ -492,7 +474,7 @@ const goToProblem = (id: number) => {
   
   .list-header,
   .problem-item {
-    grid-template-columns: 60px 1fr 80px 80px 150px;
+    grid-template-columns: 1fr 80px 80px 150px;
     gap: 10px;
     padding: 14px 16px;
   }
@@ -540,7 +522,7 @@ const goToProblem = (id: number) => {
   
   .list-header,
   .problem-item {
-    grid-template-columns: 50px 1fr 70px;
+    grid-template-columns: 1fr 70px;
     gap: 8px;
     padding: 12px;
   }
@@ -628,11 +610,7 @@ const goToProblem = (id: number) => {
   
   .problem-item {
     padding: 10px 8px;
-    grid-template-columns: 40px 1fr 60px;
-  }
-  
-  .status-icon {
-    font-size: 14px;
+    grid-template-columns: 1fr 60px;
   }
   
   .problem-id {
@@ -683,7 +661,7 @@ const goToProblem = (id: number) => {
   }
   
   .problem-item {
-    grid-template-columns: 35px 1fr 55px;
+    grid-template-columns: 1fr 55px;
   }
   
   .problem-title {
