@@ -45,9 +45,9 @@
           </div>
 
           <div class="form-options">
-            <label class="checkbox-label">
-              <input v-model="loginForm.rememberMe" type="checkbox" class="checkbox" />
-              <span class="checkbox-text">记住我</span>
+            <label class="remember-label">
+              <input v-model="loginForm.rememberMe" type="checkbox" class="remember-checkbox" />
+              <span class="remember-text">记住我</span>
             </label>
             <RouterLink to="/forgot-password" class="forgot-link">忘记密码？</RouterLink>
           </div>
@@ -86,6 +86,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 interface LoginForm {
   username: string
@@ -94,6 +95,7 @@ interface LoginForm {
 }
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 表单数据
 const loginForm = ref<LoginForm>({
@@ -108,20 +110,26 @@ const isLoading = ref(false)
 
 // 登录处理
 const handleLogin = async () => {
-  isLoading.value = true
+  // 清除之前的错误
+  authStore.clearError()
   
+  if (!loginForm.value.username || !loginForm.value.password) {
+    return
+  }
+
+  isLoading.value = true
+
   try {
-    // 这里会调用登录API
-    console.log('登录数据:', loginForm.value)
-    
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
+    await authStore.login({
+       username: loginForm.value.username,
+       password: loginForm.value.password,
+       rememberMe: loginForm.value.rememberMe
+     })
+
     // 登录成功后跳转
     router.push('/')
   } catch (error) {
     console.error('登录失败:', error)
-    // 这里会显示错误消息
   } finally {
     isLoading.value = false
   }
