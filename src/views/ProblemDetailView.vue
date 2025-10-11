@@ -76,28 +76,34 @@
       <div class="code-section">
         <div class="code-editor-container">
           <div class="editor-header">
-            <select v-model="selectedLanguage" class="language-select">
-              <option v-for="lang in supportedLanguages" :key="lang.value" :value="lang.value">
-                {{ lang.label }}
-              </option>
-            </select>
+            <LanguageSelector 
+              v-model="selectedLanguage" 
+              @change="onLanguageChange"
+            />
             <button @click="resetCode" class="reset-btn">重置代码</button>
           </div>
           
           <div class="code-editor">
-            <textarea 
-              v-model="userCode" 
-              class="code-textarea"
-              :placeholder="getCodeTemplate(selectedLanguage)"
-              spellcheck="false"
-            ></textarea>
+            <MonacoEditor
+              v-model="userCode"
+              :language="selectedLanguage"
+              :height="'500px'"
+              theme="vs-dark"
+              :options="{
+                fontSize: 14,
+                minimap: { enabled: false },
+                wordWrap: 'on',
+                automaticLayout: true,
+                scrollBeyondLastLine: false
+              }"
+            />
           </div>
 
           <div class="editor-actions">
             <button @click="runCode" class="run-btn" :disabled="isRunning">
               {{ isRunning ? '运行中...' : '运行代码' }}
             </button>
-            <button @click="submitCode" class="submit-btn" :disabled="isSubmitting">
+            <button @click="submitCodeAction" class="submit-btn" :disabled="isSubmitting">
               {{ isSubmitting ? '提交中...' : '提交答案' }}
             </button>
           </div>
@@ -106,20 +112,20 @@
         <!-- 运行结果 -->
         <div v-if="runResult" class="run-result">
           <h4>运行结果</h4>
-          <div class="result-content">
-            <div v-if="runResult.success" class="result-success">
-              <div class="result-item">
-                <strong>输出：</strong>
-                <pre>{{ runResult.output }}</pre>
-              </div>
-              <div class="result-item">
-                <strong>执行时间：</strong>
-                <span>{{ runResult.executionTime }}ms</span>
-              </div>
+          <div v-if="runResult.success" class="success-result">
+            <p><strong>输出:</strong></p>
+            <pre>{{ runResult.output }}</pre>
+            <div class="result-stats">
+              <span><strong>执行时间:</strong> {{ formatExecutionTime(runResult.executionTime) }}</span>
+              <span><strong>内存使用:</strong> {{ formatMemoryUsage(runResult.memoryUsage) }}</span>
             </div>
-            <div v-else class="result-error">
-              <strong>错误：</strong>
-              <pre>{{ runResult.error }}</pre>
+          </div>
+          <div v-else class="error-result">
+            <p><strong>错误:</strong></p>
+            <pre>{{ runResult.error }}</pre>
+            <div class="result-stats">
+              <span><strong>执行时间:</strong> {{ formatExecutionTime(runResult.executionTime) }}</span>
+              <span><strong>内存使用:</strong> {{ formatMemoryUsage(runResult.memoryUsage) }}</span>
             </div>
           </div>
         </div>
@@ -127,22 +133,41 @@
         <!-- 提交结果 -->
         <div v-if="submitResult" class="submit-result">
           <h4>提交结果</h4>
-          <div class="result-content">
-            <div :class="['submit-status', submitResult.status]">
-              {{ getStatusText(submitResult.status) }}
+          <div class="result-summary">
+            <div class="status" :style="{ color: getStatusColor(submitResult.status) }">
+              {{ getStatusIcon(submitResult.status) }} {{ submitResult.status }}
             </div>
-            <div v-if="submitResult.details" class="submit-details">
-              <div class="detail-item">
-                <span>通过测试用例：</span>
-                <span>{{ submitResult.details.passedTests }}/{{ submitResult.details.totalTests }}</span>
+            <div class="details">
+              <p>得分: {{ submitResult.score }}/100</p>
+              <p>通过测试: {{ submitResult.passedTestCases }}/{{ submitResult.totalTestCases }}</p>
+              <p>执行时间: {{ formatExecutionTime(submitResult.executionTime) }}</p>
+              <p>内存使用: {{ formatMemoryUsage(submitResult.memoryUsage) }}</p>
+            </div>
+          </div>
+          
+          <!-- 测试用例详情 -->
+          <div v-if="submitResult.details && submitResult.details.length > 0" class="test-cases">
+            <h5>测试用例详情</h5>
+            <div v-for="(testCase, index) in submitResult.details" :key="index" class="test-case">
+              <div class="test-case-header">
+                <span class="test-case-number">测试用例 {{ index + 1 }}</span>
+                <span class="test-case-status" :class="{ passed: testCase.passed, failed: !testCase.passed }">
+                  {{ testCase.passed ? '✅ 通过' : '❌ 失败' }}
+                </span>
               </div>
-              <div class="detail-item">
-                <span>执行时间：</span>
-                <span>{{ submitResult.details.executionTime }}ms</span>
-              </div>
-              <div class="detail-item">
-                <span>内存消耗：</span>
-                <span>{{ submitResult.details.memoryUsage }}MB</span>
+              <div class="test-case-content">
+                <div class="test-input">
+                  <strong>输入:</strong> {{ testCase.input }}
+                </div>
+                <div class="test-output">
+                  <strong>期望输出:</strong> {{ testCase.expectedOutput }}
+                </div>
+                <div class="test-actual">
+                  <strong>实际输出:</strong> {{ testCase.actualOutput }}
+                </div>
+                <div class="test-time">
+                  <strong>执行时间:</strong> {{ formatExecutionTime(testCase.executionTime) }}
+                </div>
               </div>
             </div>
           </div>
@@ -155,6 +180,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import MonacoEditor from '@/components/MonacoEditor.vue'
+import LanguageSelector from '@/components/LanguageSelector.vue'
+import { getCodeTemplate } from '@/utils/codeTemplates'
+import { executeCode, submitCode, formatExecutionTime, formatMemoryUsage, getStatusColor, getStatusIcon, type ExecutionResult, type SubmissionResult } from '@/services/codeExecutionService'
 
 interface Example {
   input: string
@@ -176,42 +205,20 @@ interface Problem {
   submitCount: number
 }
 
-interface RunResult {
-  success: boolean
-  output?: string
-  error?: string
-  executionTime?: number
-}
 
-interface SubmitResult {
-  status: 'accepted' | 'wrong_answer' | 'time_limit_exceeded' | 'memory_limit_exceeded' | 'runtime_error' | 'compile_error'
-  details?: {
-    passedTests: number
-    totalTests: number
-    executionTime: number
-    memoryUsage: number
-  }
-}
 
 const route = useRoute()
 const problemId = computed(() => route.params.id as string)
 
-// 支持的编程语言
-const supportedLanguages = [
-  { label: 'C++', value: 'cpp' },
-  { label: 'Java', value: 'java' },
-  { label: 'Python', value: 'python' },
-  { label: 'JavaScript', value: 'javascript' },
-  { label: 'C', value: 'c' }
-]
 
-// 响应式数据
+
 const selectedLanguage = ref('cpp')
 const userCode = ref('')
+const customInput = ref('')
+const runResult = ref<ExecutionResult | null>(null)
+const submitResult = ref<SubmissionResult | null>(null)
 const isRunning = ref(false)
 const isSubmitting = ref(false)
-const runResult = ref<RunResult | null>(null)
-const submitResult = ref<SubmitResult | null>(null)
 
 // 模拟题目数据
 const problem = ref<Problem>({
@@ -260,72 +267,9 @@ const getDifficultyText = (difficulty: string) => {
   return map[difficulty as keyof typeof map] || difficulty
 }
 
-// 获取代码模板
-const getCodeTemplate = (language: string) => {
-  const templates = {
-    cpp: `#include <iostream>
-#include <vector>
-using namespace std;
-
-class Solution {
-public:
-    vector<int> twoSum(vector<int>& nums, int target) {
-        // 在这里编写你的代码
-        
-    }
-};
-
-int main() {
-    // 测试代码
-    return 0;
-}`,
-    java: `import java.util.*;
-
-class Solution {
-    public int[] twoSum(int[] nums, int target) {
-        // 在这里编写你的代码
-        
-    }
-}
-
-public class Main {
-    public static void main(String[] args) {
-        // 测试代码
-    }
-}`,
-    python: `class Solution:
-    def twoSum(self, nums: List[int], target: int) -> List[int]:
-        # 在这里编写你的代码
-        pass
-
-# 测试代码
-if __name__ == "__main__":
-    pass`,
-    javascript: `/**
- * @param {number[]} nums
- * @param {number} target
- * @return {number[]}
- */
-var twoSum = function(nums, target) {
-    // 在这里编写你的代码
-    
-};
-
-// 测试代码`,
-    c: `#include <stdio.h>
-#include <stdlib.h>
-
-int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
-    // 在这里编写你的代码
-    
-}
-
-int main() {
-    // 测试代码
-    return 0;
-}`
-  }
-  return templates[language as keyof typeof templates] || ''
+// 语言变化处理
+const onLanguageChange = () => {
+  resetCode()
 }
 
 // 重置代码
@@ -339,24 +283,20 @@ const runCode = async () => {
     alert('请先输入代码')
     return
   }
-
+  
   isRunning.value = true
   runResult.value = null
-
+  
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    // 模拟运行结果
-    runResult.value = {
-      success: true,
-      output: '0 1',
-      executionTime: 15
-    }
+    const result = await executeCode(userCode.value, selectedLanguage.value, customInput.value)
+    runResult.value = result
   } catch {
     runResult.value = {
       success: false,
-      error: '编译错误：语法错误'
+      output: '',
+      error: '代码执行失败，请检查网络连接',
+      executionTime: 0,
+      memoryUsage: 0
     }
   } finally {
     isRunning.value = false
@@ -364,49 +304,32 @@ const runCode = async () => {
 }
 
 // 提交代码
-const submitCode = async () => {
+const submitCodeAction = async () => {
   if (!userCode.value.trim()) {
     alert('请先输入代码')
     return
   }
-
+  
   isSubmitting.value = true
   submitResult.value = null
-
+  
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    
-    // 模拟提交结果
-    submitResult.value = {
-      status: 'accepted',
-      details: {
-        passedTests: 58,
-        totalTests: 58,
-        executionTime: 12,
-        memoryUsage: 15.2
-      }
-    }
+    const result = await submitCode(userCode.value, selectedLanguage.value, problemId.value)
+    submitResult.value = result
   } catch {
     submitResult.value = {
-      status: 'runtime_error'
+      submissionId: 'error',
+      status: 'Runtime Error',
+      score: 0,
+      totalTestCases: 0,
+      passedTestCases: 0,
+      executionTime: 0,
+      memoryUsage: 0,
+      details: []
     }
   } finally {
     isSubmitting.value = false
   }
-}
-
-// 获取状态文本
-const getStatusText = (status: string) => {
-  const map = {
-    accepted: '通过',
-    wrong_answer: '答案错误',
-    time_limit_exceeded: '超时',
-    memory_limit_exceeded: '内存超限',
-    runtime_error: '运行错误',
-    compile_error: '编译错误'
-  }
-  return map[status as keyof typeof map] || status
 }
 
 // 初始化
@@ -417,117 +340,145 @@ onMounted(() => {
 
 <style scoped>
 .problem-detail-view {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
 }
 
 .problem-header {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .problem-meta {
-  margin-bottom: 16px;
+  margin-bottom: 1.5rem;
 }
 
 .back-link {
-  color: #1890ff;
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  font-size: 14px;
-  margin-bottom: 16px;
-  display: inline-block;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
 
 .back-link:hover {
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  transform: translateY(-1px);
 }
 
 .problem-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #333;
-  margin: 0 0 12px 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 1rem 0;
+  background: linear-gradient(45deg, #fff, #e0e7ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .problem-tags {
   display: flex;
-  gap: 8px;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
 .difficulty-tag {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .difficulty-tag.easy {
-  background: #f6ffed;
-  color: #52c41a;
+  background: linear-gradient(45deg, #22c55e, #16a34a);
+  color: white;
 }
 
 .difficulty-tag.medium {
-  background: #fff7e6;
-  color: #fa8c16;
+  background: linear-gradient(45deg, #f59e0b, #d97706);
+  color: white;
 }
 
 .difficulty-tag.hard {
-  background: #fff2f0;
-  color: #ff4d4f;
+  background: linear-gradient(45deg, #ef4444, #dc2626);
+  color: white;
 }
 
 .tag {
-  padding: 4px 8px;
-  background: #f0f0f0;
-  border-radius: 4px;
-  font-size: 12px;
-  color: #666;
+  padding: 0.5rem 1rem;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  font-size: 0.875rem;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .problem-stats {
   display: flex;
-  gap: 24px;
+  gap: 2rem;
+  margin-top: 1.5rem;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  min-width: 120px;
 }
 
 .stat-label {
-  font-size: 12px;
-  color: #666;
-  margin-bottom: 4px;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.5rem;
 }
 
 .stat-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
 }
 
 .problem-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 
 .problem-description {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   height: fit-content;
+  color: white;
 }
 
 .description-section {
-  margin-bottom: 24px;
+  margin-bottom: 2rem;
 }
 
 .description-section:last-child {
@@ -535,37 +486,47 @@ onMounted(() => {
 }
 
 .description-section h3 {
-  font-size: 16px;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #333;
-  margin: 0 0 12px 0;
+  color: white;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .description-content {
-  color: #666;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
 }
 
 .description-content p {
-  margin: 0 0 12px 0;
+  margin: 0 0 1rem 0;
 }
 
 .description-content code {
-  background: #f5f5f5;
-  padding: 2px 4px;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #e0e7ff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
   font-family: 'Courier New', monospace;
+  font-weight: 500;
 }
 
 .description-content ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 1.5rem;
+}
+
+.description-content li {
+  margin-bottom: 0.5rem;
 }
 
 .example {
-  border: 1px solid #e8e8e8;
-  border-radius: 6px;
-  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
 }
 
 .example:last-child {
@@ -573,162 +534,168 @@ onMounted(() => {
 }
 
 .example-title {
-  background: #fafafa;
-  padding: 8px 12px;
-  border-bottom: 1px solid #e8e8e8;
-  font-weight: 500;
-  font-size: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .example-content {
-  padding: 12px;
+  padding: 1.5rem;
 }
 
 .example-input,
 .example-output {
-  margin-bottom: 8px;
+  margin-bottom: 1rem;
 }
 
 .example-input strong,
 .example-output strong {
-  color: #333;
-  font-size: 14px;
+  color: white;
+  font-size: 0.875rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .example-input pre,
 .example-output pre {
-  background: #f8f8f8;
-  padding: 8px;
-  border-radius: 4px;
-  margin: 4px 0 0 0;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e0e7ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 0.875rem;
   overflow-x: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .example-explanation {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .example-explanation strong {
-  color: #333;
-  font-size: 14px;
+  color: white;
+  font-size: 0.875rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .example-explanation p {
-  margin: 4px 0 0 0;
-  color: #666;
-  font-size: 14px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
 .code-section {
-  background: white;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   height: fit-content;
+  color: white;
 }
 
 .code-editor-container {
-  margin-bottom: 20px;
+  margin-bottom: 2rem;
 }
 
 .editor-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.language-select {
-  padding: 6px 12px;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  background: white;
-  font-size: 14px;
-}
+
 
 .reset-btn {
-  padding: 6px 12px;
-  background: #f5f5f5;
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  color: white;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
 }
 
 .reset-btn:hover {
-  background: #e8e8e8;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
 .code-editor {
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
   overflow: hidden;
-}
-
-.code-textarea {
-  width: 100%;
-  height: 400px;
-  padding: 16px;
-  border: none;
-  outline: none;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  line-height: 1.5;
-  resize: vertical;
-  background: #fafafa;
 }
 
 .editor-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .run-btn,
 .submit-btn {
-  padding: 8px 16px;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .run-btn {
-  background: #52c41a;
+  background: linear-gradient(45deg, #22c55e, #16a34a);
   color: white;
 }
 
 .run-btn:hover:not(:disabled) {
-  background: #389e0d;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
 }
 
 .submit-btn {
-  background: #1890ff;
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
   color: white;
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: #096dd9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
 
 .run-btn:disabled,
 .submit-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .run-result,
 .submit-result {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 16px;
-  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .run-result:last-child,
@@ -738,22 +705,24 @@ onMounted(() => {
 
 .run-result h4,
 .submit-result h4 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
   font-weight: 600;
-  color: #333;
+  color: white;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .result-success {
-  color: #52c41a;
+  color: #22c55e;
 }
 
 .result-error {
-  color: #ff4d4f;
+  color: #ef4444;
 }
 
 .result-item {
-  margin-bottom: 8px;
+  margin-bottom: 1rem;
 }
 
 .result-item:last-child {
@@ -761,94 +730,131 @@ onMounted(() => {
 }
 
 .result-item strong {
-  font-weight: 500;
+  font-weight: 600;
+  color: white;
+  display: block;
+  margin-bottom: 0.5rem;
 }
 
 .result-item pre {
-  background: white;
-  padding: 8px;
-  border-radius: 4px;
-  margin: 4px 0 0 0;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e0e7ff;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 0;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
-  border: 1px solid #e8e8e8;
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow-x: auto;
 }
 
 .submit-status {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .submit-status.accepted {
-  color: #52c41a;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .submit-status.wrong_answer,
 .submit-status.runtime_error,
 .submit-status.compile_error {
-  color: #ff4d4f;
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .submit-status.time_limit_exceeded,
 .submit-status.memory_limit_exceeded {
-  color: #fa8c16;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .submit-details {
-  background: white;
-  padding: 12px;
-  border-radius: 4px;
-  border: 1px solid #e8e8e8;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 14px;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .detail-item:last-child {
   margin-bottom: 0;
+  border-bottom: none;
+}
+
+.detail-item span:first-child {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.detail-item span:last-child {
+  color: white;
+  font-weight: 600;
 }
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .problem-content {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
   
   .code-section {
-    margin-top: 20px;
+    margin-top: 0;
   }
 }
 
 @media (max-width: 768px) {
   .problem-detail-view {
-    padding: 12px;
+    padding: 1rem;
   }
   
   .problem-header {
-    padding: 16px;
+    padding: 1.5rem;
   }
   
   .problem-title {
-    font-size: 20px;
+    font-size: 1.5rem;
   }
   
   .problem-stats {
-    gap: 16px;
+    gap: 1rem;
+    flex-direction: column;
+  }
+  
+  .stat-item {
+    min-width: auto;
+    flex-direction: row;
+    justify-content: space-between;
   }
   
   .problem-description,
   .code-section {
-    padding: 16px;
+    padding: 1.5rem;
   }
   
   .editor-header {
     flex-direction: column;
-    gap: 8px;
+    gap: 1rem;
     align-items: stretch;
   }
   
@@ -856,8 +862,382 @@ onMounted(() => {
     flex-direction: column;
   }
   
-  .code-textarea {
+  .code-editor {
+    height: 400px;
+  }
+  
+  .example-content {
+    padding: 1rem;
+  }
+  
+  .example-title {
+    padding: 0.75rem 1rem;
+  }
+  
+  .submit-details {
+    padding: 1rem;
+  }
+  
+  .result-summary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .test-cases h5 {
+    font-size: 1rem;
+  }
+  
+  .test-case {
+    padding: 1rem;
+  }
+  
+  .test-case-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .test-case-content {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .problem-detail-view {
+    padding: 0.75rem;
+  }
+  
+  .problem-header,
+  .problem-description,
+  .code-section {
+    padding: 1rem;
+  }
+  
+  .problem-title {
+    font-size: 1.25rem;
+  }
+  
+  .problem-tags {
+    gap: 0.5rem;
+  }
+  
+  .difficulty-tag,
+  .tag {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .code-editor {
     height: 300px;
+  }
+  
+  .run-result,
+  .submit-result {
+    padding: 1rem;
+  }
+  
+  .back-link {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  
+  .stat-value {
+    font-size: 1.25rem;
+  }
+  
+  .description-section h3 {
+    font-size: 1.125rem;
+  }
+  
+  .example-input pre,
+  .example-output pre {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+  }
+  
+  .run-btn,
+  .submit-btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .reset-btn {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.75rem;
+  }
+  
+  .test-case-content {
+    font-size: 0.75rem;
+  }
+  
+  .test-case-content div {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* 平板设备响应式设计 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .problem-detail {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+
+  .problem-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .problem-meta {
+    gap: 1rem;
+  }
+
+  .meta-item {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .problem-content {
+    gap: 1.5rem;
+  }
+
+  .problem-description,
+  .code-editor-section {
+    padding: 1.5rem;
+  }
+
+  .problem-description h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .problem-description h3 {
+    font-size: 1.1rem;
+    margin: 1.25rem 0 0.75rem 0;
+  }
+
+  .problem-description p,
+  .problem-description li {
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  .code-editor-section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .editor-controls {
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .control-group {
+    gap: 0.75rem;
+  }
+
+  .control-group label {
+    font-size: 0.85rem;
+  }
+
+  .editor-actions {
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1.25rem;
+    font-size: 0.85rem;
+  }
+
+  .btn-primary,
+  .btn-success {
+    min-height: 42px;
+  }
+
+  .result-section {
+    margin-top: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .result-section h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .result-info {
+    gap: 1rem;
+  }
+
+  .info-item {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .test-cases {
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .test-case {
+    padding: 1rem;
+  }
+
+  .test-case-header {
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .test-case-content {
+    gap: 0.75rem;
+  }
+
+  .test-case-item {
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  /* Monaco Editor 平板优化 */
+  .monaco-editor-container {
+    min-height: 350px;
+    border-radius: 10px;
+  }
+}
+
+/* 平板横屏模式优化 */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .problem-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .problem-description {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  .code-editor-section {
+    position: sticky;
+    top: 1rem;
+  }
+
+  .monaco-editor-container {
+    min-height: 400px;
+  }
+}
+
+/* 平板竖屏模式优化 */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+  .problem-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .problem-description {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  .monaco-editor-container {
+    min-height: 300px;
+  }
+}
+
+/* 中等屏幕设备的字体和间距优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* 优化代码块显示 */
+  .problem-description pre {
+    font-size: 0.8rem;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .problem-description code {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.4rem;
+  }
+
+  /* 优化列表显示 */
+  .problem-description ul,
+  .problem-description ol {
+    padding-left: 1.5rem;
+  }
+
+  .problem-description li {
+    margin-bottom: 0.5rem;
+  }
+
+  /* 优化表格显示 */
+  .problem-description table {
+    font-size: 0.85rem;
+  }
+
+  .problem-description th,
+  .problem-description td {
+    padding: 0.6rem 0.8rem;
+  }
+
+  /* 优化按钮组布局 */
+  .editor-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .editor-actions .btn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+  }
+
+  /* 优化结果显示 */
+  .result-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .test-cases {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+}
+
+/* 平板设备的滚动优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .problem-description::-webkit-scrollbar,
+  .result-section::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .problem-description::-webkit-scrollbar-track,
+  .result-section::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  .problem-description::-webkit-scrollbar-thumb,
+  .result-section::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+  }
+
+  .problem-description::-webkit-scrollbar-thumb:hover,
+  .result-section::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* 平板设备的触摸优化 */
+@media (min-width: 769px) and (max-width: 1024px) and (hover: none) {
+  .btn:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  .meta-item:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
   }
 }
 </style>
