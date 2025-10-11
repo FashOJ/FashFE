@@ -52,11 +52,18 @@
             <RouterLink to="/forgot-password" class="forgot-link">忘记密码？</RouterLink>
           </div>
 
-          <button type="submit" class="login-btn" :disabled="isLoading">
+          <button type="submit" class="login-btn" :disabled="isLoading" :class="{ 'loading': isLoading }">
             <span v-if="isLoading" class="loading-spinner">⏳</span>
             {{ isLoading ? '登录中...' : '登录' }}
           </button>
         </form>
+
+        <!-- Error Message -->
+        <div v-if="authStore.error" class="error-alert">
+          <span class="error-icon">⚠️</span>
+          {{ authStore.error }}
+          <button @click="authStore.clearError" class="error-close">×</button>
+        </div>
 
         <!-- Social Login -->
         <div class="social-login">
@@ -285,8 +292,14 @@ const handleLogin = async () => {
   cursor: not-allowed;
 }
 
+.login-btn.loading {
+  background: #40a9ff;
+  cursor: wait;
+}
+
 .loading-spinner {
   animation: spin 1s linear infinite;
+  display: inline-block;
 }
 
 @keyframes spin {
@@ -373,6 +386,44 @@ const handleLogin = async () => {
 
 .register-btn:hover {
   text-decoration: underline;
+}
+
+.error-alert {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  color: #ff4d4f;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-icon {
+  font-size: 16px;
+}
+
+.error-close {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-close:hover {
+  background: rgba(255, 77, 79, 0.1);
+  border-radius: 50%;
 }
 
 @media (max-width: 480px) {
